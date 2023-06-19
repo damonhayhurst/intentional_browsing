@@ -1,0 +1,19 @@
+{
+	"manifest_version": 2,
+	"name": "Intentional Browsing",
+	"description": "description",
+	"version": "0.0.1",
+	"icons": {
+		"64": "icons/icon.png"
+	},
+	"background": {
+		"scripts" : ["interpret.js"]
+	},
+	"content_scripts": [
+		{
+		  "matches": ["<all_urls>"],
+		  "js": ["content.js"]
+		}
+	],
+	"permissions": ["tabs", "activeTab"]
+}
