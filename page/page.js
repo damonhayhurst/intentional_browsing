@@ -7,6 +7,12 @@ document.querySelector("#intention-form").addEventListener("submit", function(e)
     });
 });
 
+browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
+    if (message.reply) {
+        document.querySelector(".reply").textContent = reply
+    }
+})
+
 window.addEventListener("load", function(e) {
     browser.storage.local.get('intention')
     .then(data => document.querySelector("#intention-text").value = data.intention) 

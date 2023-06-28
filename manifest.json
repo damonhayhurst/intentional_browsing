@@ -7,12 +7,12 @@
 		"64": "icons/icon.png"
 	},
 	"background": {
-		"scripts" : ["background/interpret.js"]
+		"scripts" : ["background/background.js"]
 	},
 	"content_scripts": [
 		{
 		  "matches": ["*://*/*"],
-		  "js": ["content/content.js", "content/clean_html.js"],
+		  "js": ["content/content.js", "node_modules/@mozilla/readability/Readability.js"],
 		  "run_at": "document_end"
 		}
 	],
@@ -25,7 +25,7 @@
 		"default_popup": "popup/popup.html"
 	},
 	"chrome_url_overrides": {
-		"newtab": "newtab/intentions.html"
+		"newtab": "page/page.html"
 	}
 	
 }

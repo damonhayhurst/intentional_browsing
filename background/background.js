@@ -18,7 +18,7 @@ function ask(intention, content) {
 
     const messages = [
         {"role": "system", "content": system_prompt},
-        {"role": "user", "content": 'content: ' + content}
+        {"role": "user", "content": content}
     ];
 
     return fetch(openai_url, {
@@ -48,18 +48,39 @@ browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
         browser.storage.local.set({ intention : message.intention });
     }
     if (message.content) {
-        console.log(message.content)
         main(message.content)
+        .then(response => JSON.parse((response)))
         .then(reply => sendResponse({reply: reply}))
-        .catch((error) => console.error('Error:', error));
+        .catch((error) => sendResponse({error: error}));
         return true;
     }
 });
 
-/*
-Update content when a new tab becomes active.
-*/
-browser.tabs.onActivated.addListener(sendParseMessage);
+function getResponse(reply) {
+	
+	if (reply.likelihood) {
+		if (reply.likelihood < 50) {
+			console.log(":P)")
+		} 
+	}
+}
+
+function getPage() {
+    fetch('/newtab/intentions.html')
+  	.then(response => response.body.get)
+    .then(data => {
+    // Now data contains the HTML file as a string.
+        console.log(data);
+    })
+    .catch((error) => {
+        console.error('Error:', error);
+    });
+}
+
+// /*
+// Update content when a new tab becomes active.
+// */
+// browser.tabs.onActivated.addListener(sendParseMessage);
 
 /*
 Update content when a new page is loaded into a tab.
@@ -72,3 +93,5 @@ function sendParseMessage(tabId, changeInfo, tab) {
         browser.tabs.sendMessage(tabId, {parse: true});
     }
 }
+
+  
