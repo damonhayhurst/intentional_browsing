@@ -4,19 +4,22 @@
     <meta charset="utf-8">
     <link rel="stylesheet" href="../bootstrap.min.css"/>
     <link rel="stylesheet" href="page.css"/>
+    <title>Intentional Browsing</title>
   </head>
   <body>
     <div class="container text-center">
         <div class="row">
           <div class="col">
           </div>
-          <div class="col">
+          <div class="col-8">
             <h3 class="reply"></h3>
             <form class="form-floating" id="intention-form">
-                <textarea class="form-control" placeholder="I want to..." id="intention-text" style="height: 100px"></textarea>
+                <textarea class="form-control" placeholder="I want to..." id="intention-text"></textarea>
                 <label for="intention-text">Intention</label>         
                 <input class="btn btn-primary" id="submit" type="submit" value="Submit">
             </form>
+              <div class="intention-list overflow-auto">
+              </div>
           </div>
           <div class="col">
           </div>

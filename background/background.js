@@ -9,8 +9,9 @@ function createSystemPrompt(intention) {
     '${intention}'. You must answer with a percentage likelihood that is is helpful towards achieving my intention 
     and give your reasoning as to why a piece of content is or is
     not helpful towards achieving my intention. I want you to be lenient, 
-    if the page is likely to be one click away from a page that is helpful for the intention then that is good enough.
-    Your response should be in json format with keys, reasoning and likelihood.`;
+    if the page is likely to be one click away from a page that is helpful for the intention.
+    Any content related to the acceptance of cookies should be ok.
+    Your response should be in json format with keys, reasoning and likelihood. Likelihood is expressed as an integer.`;
 }
 
 function ask(intention, content) {
@@ -42,15 +43,35 @@ function main(content) {
     .catch((error) => console.error('Error:', error));
 }
 
+current_reply = "";
+
 browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
     if (message.intention) {
         console.log(message.intention)
+        browser.storage.local.get('intention')
+        .then(data => {
+            if (data.intention) {
+                let intention = data.intention;
+                browser.storage.local.get("intentionList")
+                .then(data => {
+                    if (data.intentionList) {
+                        data.intentionList.push(intention)
+                        browser.storage.local.set({intentionList: data.intentionList})
+                    } else {
+                        browser.storage.local.set({intentionList: [intention]})
+                    }
+                })
+            }
+        })
         browser.storage.local.set({ intention : message.intention });
     }
     if (message.content) {
         main(message.content)
         .then(response => JSON.parse((response)))
-        .then(reply => sendResponse({reply: reply}))
+        .then(reply => {
+            sendResponse({reply: reply});
+            current_reply = reply;
+        })
         .catch((error) => sendResponse({error: error}));
         return true;
     }
@@ -77,9 +98,9 @@ function getPage() {
     });
 }
 
-// /*
-// Update content when a new tab becomes active.
-// */
+// // /*
+// // Update content when a new tab becomes active.
+// // */
 // browser.tabs.onActivated.addListener(sendParseMessage);
 
 /*
