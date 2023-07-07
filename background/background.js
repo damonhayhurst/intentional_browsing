@@ -1,5 +1,5 @@
 const openai_url = 'https://api.openai.com/v1/chat/completions';
-const api_key = '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';  // replace 'your-api-key' with your actual API key
+// const api_key = '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';  // replace 'your-api-key' with your actual API key
 
 browser.storage.local.set({ intention : "I want to browse music" });
 
@@ -14,7 +14,7 @@ function createSystemPrompt(intention) {
     Your response should be in json format with keys, reasoning and likelihood. Likelihood is expressed as an integer.`;
 }
 
-function ask(intention, content) {
+function ask(intention, content, api_key) {
     let system_prompt = createSystemPrompt(intention)
 
     const messages = [
@@ -33,14 +33,42 @@ function ask(intention, content) {
             'messages': messages,
         })
     })
-    .then(response => response.json())
+    .then(response => {
+        if (response.status === 401) {
+            throw Error("Check your API key is present in the preferences page for this extension")
+        } else {
+            return response.json()
+        }
+    })
     .then(data => data.choices[0].message.content)
 }
 
-function main(content) {
+function main_old(content) {
     return browser.storage.local.get("intention")
-    .then(data => ask(data.intention, content))
-    .catch((error) => console.error('Error:', error));
+    .then(data => intention = data.intention)
+    .then(browser.storage.sync.get("apiKey"))
+    .then(data => api_key = data.apiKey)
+    .then(ask(intention, content, api_key))
+    .then(data => data.choices[0].message.content)
+    .catch(error => console.error(error));
+}
+
+async function getIntention() {
+    return browser.storage.local.get("intention")
+    .then(data => data.intention);
+}
+
+async function getApiKey() {
+    return browser.storage.sync.get("apiKey")
+    .then(data => data.apiKey)
+}
+
+async function main(content) {
+    const intention = await getIntention();
+    const api_key = await getApiKey();
+    return ask(intention, content, api_key).catch(error => {
+        console.log(error)
+    })
 }
 
 current_reply = "";
@@ -67,12 +95,12 @@ browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
     }
     if (message.content) {
         main(message.content)
-        .then(response => JSON.parse((response)))
+        .then(response => JSON.parse(response))
         .then(reply => {
             sendResponse({reply: reply});
             current_reply = reply;
         })
-        .catch((error) => sendResponse({error: error}));
+        .catch(error => sendResponse({error: error}));
         return true;
     }
 });
@@ -84,18 +112,6 @@ function getResponse(reply) {
 			console.log(":P)")
 		} 
 	}
-}
-
-function getPage() {
-    fetch('/newtab/intentions.html')
-  	.then(response => response.body.get)
-    .then(data => {
-    // Now data contains the HTML file as a string.
-        console.log(data);
-    })
-    .catch((error) => {
-        console.error('Error:', error);
-    });
 }
 
 // // /*

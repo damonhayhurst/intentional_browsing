@@ -27,6 +27,15 @@
 	},
 	"chrome_url_overrides": {
 		"newtab": "page/page.html"
+	},
+	"options_ui": {
+		"page": "options/options.html"
+	},
+	"browser_specific_settings": {
+		"gecko": {
+		  "id": "intentional@browser.com",
+		  "strict_min_version": "42.0"
+		}
 	}
-	
+	  
 }
