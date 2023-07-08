@@ -34,11 +34,14 @@ browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
     content = parseTextContent();
     browser.runtime.sendMessage({content: content})
     .then(response => {
+      if (response.error) {
+        throw Error(response.error.message);
+      }
       console.log(response.reply);
       browser.runtime.sendMessage(response.reply)
       blockContent(response.reply)
     })
-    .catch(error => console.error('Error:', error));
+    .catch(error => console.error(error));
     return true;
   }
   if (message.error) {

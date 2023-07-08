@@ -1,0 +1,13 @@
+.form-input {
+    margin: 20px 10px;
+}
+
+textarea {
+    width: 500px;
+    height: 150px;
+}
+
+.btn {
+    max-width: 100px;
+    text-align: center;
+}

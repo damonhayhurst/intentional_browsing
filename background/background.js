@@ -14,8 +14,17 @@ function createSystemPrompt(intention) {
     Your response should be in json format with keys, reasoning and likelihood. Likelihood is expressed as an integer.`;
 }
 
-function ask(intention, content, api_key) {
-    let system_prompt = createSystemPrompt(intention)
+String.prototype.interpolate = function (params) {
+    const names = Object.keys(params);
+    const vals = Object.values(params);
+    return new Function(...names, `return \`${this}\`;`)(...vals);
+}
+
+function interpolatePrompt (prompt, intention) {
+    return prompt.interpolate({intention: intention})
+}
+
+function ask (system_prompt, content, api_key) {
 
     const messages = [
         {"role": "system", "content": system_prompt},
@@ -48,27 +57,56 @@ function main_old(content) {
     .then(data => intention = data.intention)
     .then(browser.storage.sync.get("apiKey"))
     .then(data => api_key = data.apiKey)
-    .then(ask(intention, content, api_key))
+    .then(browser.storage.sync.get("prePrompt"))
+    .then(data => system_prompt = interpolatePrompt(data.prePrompt, intention))
+    .then(ask(system_prompt, content, api_key))
     .then(data => data.choices[0].message.content)
     .catch(error => console.error(error));
 }
 
 async function getIntention() {
     return browser.storage.local.get("intention")
-    .then(data => data.intention);
+    .then(data => {
+        if (data.intention) {
+            return data.intention;
+        } else {
+            throw Error("No intention found");
+        }
+    });
 }
 
 async function getApiKey() {
     return browser.storage.sync.get("apiKey")
-    .then(data => data.apiKey)
+    .then(data => {
+        if (data.apiKey) {
+            return data.apiKey;
+        } else {
+            throw Error("No API Key found");
+        }
+    })
+}
+
+async function getSystemPrompt(intention){
+    return browser.storage.sync.get("prePrompt")
+    .then(data => {
+        if (data.prePrompt) {
+            return data.prePrompt;
+        } else {
+            throw Error("No Pre-Prompt found");
+        }
+    })
+    .then(prompt => interpolatePrompt(prompt, intention));
 }
 
 async function main(content) {
-    const intention = await getIntention();
-    const api_key = await getApiKey();
-    return ask(intention, content, api_key).catch(error => {
-        console.log(error)
-    })
+    try {
+        const intention = await getIntention();
+        const systemPrompt = await getSystemPrompt(intention);
+        const apiKey = await getApiKey();
+    } catch (e) {
+        throw e
+    }
+    return ask(systemPrompt, content, apiKey)
 }
 
 current_reply = "";
