@@ -1,33 +1,28 @@
 const openai_url = 'https://api.openai.com/v1/chat/completions';
-// const api_key = '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';  // replace 'your-api-key' with your actual API key
+
+defaultOptions = {
+    apiKey: "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",
+    prePrompt: "I want you to act as a productivity assistant. " +
+    "I will provide you with a piece of content and you need to determine whether that piece of content " +
+    "will be helpful towards achieving my intention. My intention is: '[intention]'. You must answer with" +
+    " a percentage likelihood that is is helpful towards achieving my intention and give your reasoning as " +
+    "to why a piece of content is or is not helpful towards achieving my intention. I want you to be lenient, " +
+    "if the page is likely to be one click away from a page that is helpful for the intention. Any content related" +
+    " to the acceptance of cookies should be ok. Your response should be in json format with keys, reasoning and " +
+    "likelihood. Likelihood is expressed as an integer."
+}
+browser.storage.sync.set(defaultOptions)
 
 browser.storage.local.set({ intention : "I want to browse music" });
 
-function createSystemPrompt(intention) {
-    return `I want you to act as a productivity assistant. I will provide you with a piece of content 
-    and you need to determine whether that piece of content will be helpful towards achieving my intention. My intention is: 
-    '${intention}'. You must answer with a percentage likelihood that is is helpful towards achieving my intention 
-    and give your reasoning as to why a piece of content is or is
-    not helpful towards achieving my intention. I want you to be lenient, 
-    if the page is likely to be one click away from a page that is helpful for the intention.
-    Any content related to the acceptance of cookies should be ok.
-    Your response should be in json format with keys, reasoning and likelihood. Likelihood is expressed as an integer.`;
+function createSystemPrompt(prompt, intention) {
+    return prompt.replace(/\[intention\]/gi, intention);
 }
 
-String.prototype.interpolate = function (params) {
-    const names = Object.keys(params);
-    const vals = Object.values(params);
-    return new Function(...names, `return \`${this}\`;`)(...vals);
-}
-
-function interpolatePrompt (prompt, intention) {
-    return prompt.interpolate({intention: intention})
-}
-
-function ask (system_prompt, content, api_key) {
+function ask (systemPrompt, content, apiKey) {
 
     const messages = [
-        {"role": "system", "content": system_prompt},
+        {"role": "system", "content": systemPrompt},
         {"role": "user", "content": content}
     ];
 
@@ -35,7 +30,7 @@ function ask (system_prompt, content, api_key) {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
-            'Authorization': `Bearer ${api_key}`,
+            'Authorization': `Bearer ${apiKey}`,
         },
         body: JSON.stringify({
             "model": "gpt-3.5-turbo",
@@ -95,7 +90,7 @@ async function getSystemPrompt(intention){
             throw Error("No Pre-Prompt found");
         }
     })
-    .then(prompt => interpolatePrompt(prompt, intention));
+    .then(prompt => createSystemPrompt(prompt, intention));
 }
 
 async function main(content) {
@@ -103,10 +98,11 @@ async function main(content) {
         const intention = await getIntention();
         const systemPrompt = await getSystemPrompt(intention);
         const apiKey = await getApiKey();
+        return ask(systemPrompt, content, apiKey);
     } catch (e) {
-        throw e
+        console.log(e.message);
+        throw e;
     }
-    return ask(systemPrompt, content, apiKey)
 }
 
 current_reply = "";

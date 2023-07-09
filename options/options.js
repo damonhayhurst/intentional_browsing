@@ -6,22 +6,17 @@ function saveOptions(e) {
     });
 }
 
-defaultOptions = {
-    apiKey: '',
-    prePrompt: ''
-}
-
 function restoreOptions() {
     function setCurrentConfig(result) {
-        document.querySelector("#api-key").value = result.apiKey || '';
-        document.querySelector("#pre-prompt").value = result.prePrompt || ''; 
+        document.querySelector("#api-key").value = result.apiKey;
+        document.querySelector("#pre-prompt").value = result.prePrompt; 
     }
 
     function onError(error) {
         console.log(`Error: ${error}`);
     }
 
-    let getting = browser.storage.sync.get(defaultOptions);
+    let getting = browser.storage.sync.get({apiKey: '', prePrompt: ''});
     getting.then(setCurrentConfig, onError);
 }
   
