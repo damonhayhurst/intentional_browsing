@@ -5,15 +5,13 @@ defaultOptions = {
     prePrompt: "I want you to act as a productivity assistant. " +
     "I will provide you with a piece of content and you need to determine whether that piece of content " +
     "will be helpful towards achieving my intention. My intention is: '[intention]'. You must answer with" +
-    " a percentage likelihood that is is helpful towards achieving my intention and give your reasoning as " +
-    "to why a piece of content is or is not helpful towards achieving my intention. I want you to be lenient, " +
-    "if the page is likely to be one click away from a page that is helpful for the intention. Any content related" +
-    " to the acceptance of cookies should be ok. Your response should be in json format with keys, reasoning and " +
-    "likelihood. Likelihood is expressed as an integer."
+    "true or false to the statement, 'this content is helpful towards achieving the intention' and give your reasoning also." +
+    "I want you to be lenient. If the page is likely to be degree away from a page that is helpful to the intention. " +
+    "Then it should be deemed to be helpful. Any content related" +
+    " to the acceptance of cookies should be ok too. Your response should be in json format with keys, reasoning and " +
+    "decision. Where decision is true or false. "
 }
 browser.storage.sync.set(defaultOptions)
-
-browser.storage.local.set({ intention : "I want to browse music" });
 
 function createSystemPrompt(prompt, intention) {
     return prompt.replace(/\[intention\]/gi, intention);
@@ -45,18 +43,6 @@ function ask (systemPrompt, content, apiKey) {
         }
     })
     .then(data => data.choices[0].message.content)
-}
-
-function main_old(content) {
-    return browser.storage.local.get("intention")
-    .then(data => intention = data.intention)
-    .then(browser.storage.sync.get("apiKey"))
-    .then(data => api_key = data.apiKey)
-    .then(browser.storage.sync.get("prePrompt"))
-    .then(data => system_prompt = interpolatePrompt(data.prePrompt, intention))
-    .then(ask(system_prompt, content, api_key))
-    .then(data => data.choices[0].message.content)
-    .catch(error => console.error(error));
 }
 
 async function getIntention() {
@@ -107,25 +93,73 @@ async function main(content) {
 
 current_reply = "";
 
+browser.storage.local.get("intention")
+.then(data => {
+    if (!data.intention) {
+        updateIntention("I want to carry out web development on my firefox extension");
+    }
+})
+function updateIntention(intention) {
+    browser.storage.local.set({ intention : intention })
+    .then(() => {
+        browser.storage.local.get("intentionHistory")
+        .then(data => {
+            addToIntentionHistoryList(data.intentionHistory, intention);
+        })
+    })
+}
+
+function addToIntentionHistoryList(intentionList, intention) {
+    var intentionObj = {
+        words: intention,
+        favorite: false
+    };
+    if (intentionList) {
+        intentionList.push(intentionObj)
+        browser.storage.local.set({intentionHistory: intentionList})
+    } else {
+        browser.storage.local.set({intentionHistory: [intentionObj]})
+    }
+}
+
+function addRemoveIntentionFromFavoritesMap(intention) {
+    browser.storage.local.get("intentionFavorites")
+    .then(data => {
+        var favoritesMap;
+        if (data.intentionFavorites) {
+            favoritesMap = data.intentionFavorites;
+            if (favoritesMap.has(intention)) {
+                favoritesMap.delete(intention)
+            } else {
+                favoritesMap.set(intention, true);
+            }
+        } else {
+            favoritesMap = new Map();
+            favoritesMap.set(intention, true);
+        }
+        return browser.storage.local.set({intentionFavorites: favoritesMap});
+    })
+}
+
+function toggleShowFavoriteInHistoryList(intention) {
+    browser.storage.local.get("intentionHistory")
+    .then(data => {
+        if (data.intentionHistory) {
+            var intentionHistoryList = data.intentionHistory;
+            for (i = 0; i < intentionHistoryList.length; i++) {
+                if (intentionHistoryList[i].words === intention) {
+                    intentionHistoryList[i].favorite = !intentionHistoryList[i].favorite
+                }
+            }
+            browser.storage.local.set({intentionHistory: intentionHistoryList})
+        }
+    })
+}
+
 browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
     if (message.intention) {
         console.log(message.intention)
-        browser.storage.local.get('intention')
-        .then(data => {
-            if (data.intention) {
-                let intention = data.intention;
-                browser.storage.local.get("intentionList")
-                .then(data => {
-                    if (data.intentionList) {
-                        data.intentionList.push(intention)
-                        browser.storage.local.set({intentionList: data.intentionList})
-                    } else {
-                        browser.storage.local.set({intentionList: [intention]})
-                    }
-                })
-            }
-        })
-        browser.storage.local.set({ intention : message.intention });
+        updateIntention(message.intention)
     }
     if (message.content) {
         main(message.content)
@@ -137,16 +171,11 @@ browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
         .catch(error => sendResponse({error: error}));
         return true;
     }
+    if (message.favorite) {
+        addRemoveIntentionFromFavoritesMap(message.favorite);
+        toggleShowFavoriteInHistoryList(message.favorite);
+    }
 });
-
-function getResponse(reply) {
-	
-	if (reply.likelihood) {
-		if (reply.likelihood < 50) {
-			console.log(":P)")
-		} 
-	}
-}
 
 // // /*
 // // Update content when a new tab becomes active.

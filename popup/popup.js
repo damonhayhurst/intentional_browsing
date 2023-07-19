@@ -6,7 +6,7 @@ browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
 
 function populate(reply) {
     document.querySelector('.reply').textContent = reply.reasoning;
-    document.querySelector('.likelihood').textContent = reply.likelihood;
+    document.querySelector('.measure').textContent = reply.decision;
 }
 
 document.addEventListener('DOMContentLoaded', function() {

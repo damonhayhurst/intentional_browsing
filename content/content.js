@@ -15,16 +15,28 @@ function removeLineBreaks(content) {
   return content.replace(re, "\n");
 }
 
-function populate(reply, document) {
-  document.querySelector('.reply').textContent = reply.reasoning;
-  document.querySelector('.likelihood').textContent = reply.likelihood;
+function populate(reasoning, measure) {
+  document.querySelector('.reply').textContent = reasoning;
+  document.querySelector('.measure').textContent = measure;
 }
 
-function blockContent(reply) {
+function blockContentByDecision(reply) {
+  decision = /^true$/i.test(reply.decision)
+  if (!decision) {
+    blockContent()
+    populate(reply.reasoning, reply.decision)
+  }
+}
+
+function blockContent() {
+  document.location = browser.runtime.getURL("page/page.html");
+}
+
+function blockContentByLikelihood(reply) {
   percentage = parseInt(reply.likelihood);
   if (percentage < 50) {
-    document.location = browser.runtime.getURL("page/page.html");
-    populate(reply, document);
+    blockContent()
+    populate(reply.reasoning, reply.likelihood);
   }
 }
 
@@ -39,7 +51,7 @@ browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
       }
       console.log(response.reply);
       browser.runtime.sendMessage(response.reply)
-      blockContent(response.reply)
+      blockContentByDecision(response.reply)
     })
     .catch(error => console.error(error));
     return true;
