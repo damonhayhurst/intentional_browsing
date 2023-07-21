@@ -14,6 +14,9 @@ export default {
   output: {
     filename: 'js/[name].js',
     path: path.resolve(__dirname, 'dist'),
+    clean: {
+      keep: "manifest.json" // Keep these assets under 'ignored/dir'.
+    },
   },
   plugins: [
     new HtmlWebpackPlugin({
@@ -37,7 +40,8 @@ export default {
     new WebExtPlugin({
         firefox: 'firefoxdeveloperedition',
         devtools: true,
-        sourceDir: path.resolve(__dirname, 'dist')
+        sourceDir: path.resolve(__dirname, 'dist'),
+        buildPackage: true
     })
   ],
   entry: {
