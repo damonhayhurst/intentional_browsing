@@ -1,0 +1,60 @@
+form#intention-form {
+    margin: 50px 0;
+}
+
+#intention-text {
+    height: 100px;
+}
+
+.btn#submit {
+    margin: 30px 0;
+}
+
+.intention-history-list {
+    margin: auto;
+}
+
+.card {
+    margin: 25px 10px;
+    height: 100px;
+}
+
+.intention-select-form {
+    text-align: left;
+    position: relative;
+    height: 100%;
+}
+
+.btn#select {
+    right: 0;
+    position: absolute;
+    bottom: 0;
+}
+
+.favorite-star {
+    right: 100px;
+    position: absolute;
+    bottom: 0;
+    font-size: 27px;
+    cursor: pointer;
+}
+
+.intention-list-view  {
+    padding-top: 20px;
+    height: 100vh;
+}
+
+.rounded-top-left {
+    border-top-left-radius: var(--bs-border-radius) !important;
+}
+.rounded-top-right {
+    border-top-right-radius: var(--bs-border-radius) !important;
+}
+.rounded-bottom-left {
+    border-bottom-left-radius: var(--bs-border-radius) !important;
+}
+.rounded-bottom-right {
+    border-bottom-right-radius: var(--bs-border-radius) !important;
+}
+
+

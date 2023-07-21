@@ -1,0 +1,36 @@
+{
+	"manifest_version": 2,
+	"name": "Intentional Browsing",
+	"description": "description",
+	"version": "0.0.1",
+	"background": {
+		"scripts" : ["js/background.js"],
+		"persistent": false
+	},
+	"content_scripts": [
+		{
+			"matches": ["*://*/*"],
+			"js": [
+			"js/content.js"
+			],
+			"run_at": "document_end"
+		}
+	],
+	"permissions": ["tabs", "activeTab", "storage"],
+	"browser_action": {
+		"default_title": "Popup",
+		"default_popup": "html/popup.html"
+	},
+	"chrome_url_overrides": {
+		"newtab": "html/page.html"
+	},
+	"options_ui": {
+		"page": "html/options.html"
+	},
+	"browser_specific_settings": {
+		"gecko": {
+			"id": "intentional@browser.com",
+			"strict_min_version": "42.0"
+		}
+	}
+}

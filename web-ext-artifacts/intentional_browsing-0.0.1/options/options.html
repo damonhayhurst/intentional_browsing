@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <link rel="stylesheet" href="../node_modules/bootstrap/dist/css/bootstrap.min.css"/>
+    <link rel="stylesheet" href="options.css"/>
+  </head>
+
+  <body>
+      <form class="form-floating">
+        <div class="row form-input">
+          <label for="api-key">OpenAI API Key</label>
+          <input type="text" class="form-control" id="api-key" name="api-key" />
+        </div>
+        <div class="form-input row">
+          <label for="pre-prompt">Pre-Prompt</label>
+          <textarea type="text" id="pre-prompt" class="form-control" name="pre-prompt"></textarea>
+        </div>
+        <div class="row form-input justify-content-center">
+          <input class="btn btn-primary" id="submit" type="submit" value="Submit">
+        </div>
+      </form>
+    <script src="options.js"></script>
+  </body>
+</html>

@@ -13,7 +13,12 @@
 	"content_scripts": [
 		{
 		  "matches": ["*://*/*"],
-		  "js": ["content/content.js", "node_modules/@mozilla/readability/Readability.js"],
+		  "js": [
+			"content/content.js", 
+			"node_modules/@mozilla/readability/Readability.js", 
+			"node_modules/bootstrap/dist/css/bootstrap.min.css", 
+			"bootstrap-icons/font/bootstrap-icons.css"
+		  ],
 		  "run_at": "document_end"
 		}
 	],

@@ -1,0 +1,9 @@
+{
+  "dependencies": {
+    "@mozilla/readability": "^0.4.4",
+    "axios": "^1.4.0",
+    "bootstrap": "^5.3.0",
+    "bootstrap-icons": "^1.10.5",
+    "dotenv": "^16.3.1"
+  }
+}

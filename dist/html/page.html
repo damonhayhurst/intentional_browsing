@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>Intentional Browsing</title>
+  </head>
+  <body>
+    <div class="container text-center">
+      <div class="row">
+        <div class="col">
+        </div>
+        <div class="col-9">
+          <h3 class="reply p-3"></h3>
+          <div class="p-3">
+            <form class="form-floating" id="intention-form">
+              <textarea class="form-control" placeholder="I want to..." id="intention-text"></textarea>
+              <label for="intention-text">Intention</label>
+              <input class="btn btn-secondary" id="try-again" type="submit" name="try-again" value="Try Again">   
+              <input class="btn btn-primary" id="submit" type="submit" name="submit" value="Submit">
+            </form>
+          </div>
+          <div class="intention-list-view bg-light-subtle p-3">
+            <ul class="nav nav-tabs border-bottom-0" role="tablist">
+              <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="home-tab" data-bs-toggle="tab" data-bs-target="#history" type="button" role="tab" aria-controls="history" aria-selected="true">History</button>
+              </li>
+              <li class="nav-item" role="presentation">
+                <button class="nav-link" id="favorites-tab" data-bs-toggle="tab" data-bs-target="#favorites" type="button" role="tab" aria-controls="favorites" aria-selected="false">Favorites</button>
+              </li>
+            </ul>
+            <div class="tab-content">
+              <div class="tab-pane fade show active" id="history" role="tabpanel" aria-labelledby="history-tab" tabindex="0">
+                <div class="intention-history-list overflow-auto bg-white border rounded-bottom-left rounded-bottom-right rounded-top-right">
+                  <!-- intention cards from js -->
+                </div>
+              </div>
+              <div class="tab-pane fade" id="favorites" role="tabpanel" aria-labelledby="favorites-tab" tabindex="0">
+                <div class="intention-favorites-list overflow-auto bg-white border rounded-bottom-left rounded-bottom-right rounded-top-right">
+                  <!-- intention cards from js -->
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="col">
+        </div>
+      </div>
+    </div>
+  <script defer src="../js/page.js"></script></body>
+</html>
