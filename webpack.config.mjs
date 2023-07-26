@@ -1,6 +1,8 @@
 /** @type {import('webpack').Configuration} */
 import WebExtPlugin from 'web-ext-plugin';
 import HtmlWebpackPlugin from 'html-webpack-plugin';
+import CopyPlugin from 'copy-webpack-plugin';
+import webpack from 'webpack';
 
 import path from 'path';
 import { dirname } from 'path';
@@ -14,11 +16,12 @@ export default {
   output: {
     filename: 'js/[name].js',
     path: path.resolve(__dirname, 'dist'),
-    clean: {
-      keep: "manifest.json" // Keep these assets under 'ignored/dir'.
-    },
+    clean: true,
   },
   plugins: [
+    new webpack.DefinePlugin({
+      DEBUG: true
+    }),
     new HtmlWebpackPlugin({
       template: './src/html/page.html',
       filename: 'html/page.html',
@@ -37,11 +40,17 @@ export default {
       inject: 'body',
       chunks: ['options']
     }),
+    new CopyPlugin({
+      patterns: [
+        "manifest.json"
+      ]
+    }),
     new WebExtPlugin({
         firefox: 'firefoxdeveloperedition',
         devtools: true,
         sourceDir: path.resolve(__dirname, 'dist'),
-        buildPackage: true
+        buildPackage: true,
+        firefoxProfile: '/Users/damon/Library/Application\ Support/Firefox/Profiles/d6vpdd29.dev-edition-default'
     })
   ],
   entry: {

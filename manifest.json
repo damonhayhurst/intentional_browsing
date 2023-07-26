@@ -16,7 +16,7 @@
 			"run_at": "document_end"
 		}
 	],
-	"permissions": ["tabs", "activeTab", "storage"],
+	"permissions": ["tabs", "activeTab", "storage", "webNavigation"],
 	"browser_action": {
 		"default_title": "Popup",
 		"default_popup": "html/popup.html"

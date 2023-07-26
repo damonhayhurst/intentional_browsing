@@ -1,6 +1,6 @@
 const openai_url = 'https://api.openai.com/v1/chat/completions';
 
-let defaultOptions = {
+let defaultSettings = {
     apiKey: "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",
     prePrompt: "I want you to act as a productivity assistant. " +
     "I will provide you with a piece of content and you need to determine whether that piece of content " +
@@ -9,9 +9,32 @@ let defaultOptions = {
     "I want you to be lenient. If the page is likely to be degree away from a page that is helpful to the intention. " +
     "Then it should be deemed to be helpful. Any content related" +
     " to the acceptance of cookies should be ok too. Your response should be in json format with keys, reasoning and " +
-    "decision. Where decision is true or false. "
+    "decision. Where decision is true or false. ",
+    intention: "I want to carry out web development on my firefox extension"
 }
-browser.storage.sync.set(defaultOptions)
+
+setDefaultSettings()
+
+function setDefaultSettings() {
+    browser.storage.sync.get(['apiKey', 'prePrompt'])
+    .then(data => {
+        browser.storage.sync.set({
+            apiKey: data.apiKey ? data.apiKey : defaultSettings.apiKey,
+            prePrompt: data.prePrompt ? data.prePrompt : defaultSettings.prePrompt
+        })
+    })
+    browser.storage.local.get("intention")
+    .then(data => {
+        if (!data.intention) {
+            updateIntention(defaultSettings.intention);
+        }
+    })
+    setCurrentReply("")
+}
+
+function setCurrentReply(reply) {
+    window.current_reply = reply;
+}
 
 function createSystemPrompt(prompt, intention) {
     return prompt.replace(/\[intention\]/gi, intention);
@@ -42,7 +65,13 @@ function ask (systemPrompt, content, apiKey) {
             return response.json()
         }
     })
-    .then(data => data.choices[0].message.content)
+    .then(data => {
+        if (data.choices) {
+            return data.choices[0].message.content;
+        } else {
+            throw Error(data.message);
+        }
+    })
 }
 
 async function getIntention() {
@@ -93,12 +122,6 @@ async function main(content) {
 
 window.current_reply = "";
 
-browser.storage.local.get("intention")
-.then(data => {
-    if (!data.intention) {
-        updateIntention("I want to carry out web development on my firefox extension");
-    }
-})
 function updateIntention(intention) {
     browser.storage.local.set({ intention : intention })
     .then(() => {
@@ -166,7 +189,7 @@ browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
         .then(response => JSON.parse(response))
         .then(reply => {
             sendResponse({reply: reply});
-            window.current_reply = reply;
+            setCurrentReply(reply)
         })
         .catch(error => sendResponse({error: error}));
         return true;
@@ -177,21 +200,8 @@ browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
     }
 });
 
-// // /*
-// // Update content when a new tab becomes active.
-// // */
-// browser.tabs.onActivated.addListener(sendParseMessage);
-
-/*
-Update content when a new page is loaded into a tab.
-*/
-browser.tabs.onUpdated.addListener(sendParseMessage);
-
-
-function sendParseMessage(tabId, changeInfo, tab) {
-    if (changeInfo && changeInfo.status === 'complete') {
-        browser.tabs.sendMessage(tabId, {parse: true});
-    }
+function sendParseMessage() {
+    browser.tabs.sendMessage(details.tabId, {parse: true});
 }
 
   

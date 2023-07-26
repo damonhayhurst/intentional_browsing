@@ -22,6 +22,8 @@ function restoreOptions() {
     let getting = browser.storage.sync.get({apiKey: '', prePrompt: ''});
     getting.then(setCurrentConfig, onError);
 }
+
+
   
 document.addEventListener("DOMContentLoaded", restoreOptions);
 document.querySelector("form").addEventListener("submit", saveOptions);

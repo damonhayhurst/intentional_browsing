@@ -1,5 +1,9 @@
 .form-input {
-    margin: 20px 10px;
+    margin: 20px 50px;
+}
+
+.container {
+    margin: 50px;
 }
 
 textarea {
@@ -7,7 +11,14 @@ textarea {
     height: 150px;
 }
 
-.btn {
-    max-width: 100px;
-    text-align: center;
+input.btn {
+    width: 20%;
+}
+
+input.btn-primary {
+    margin: auto;
+}
+
+input.btn-secondary {
+    float: right;
 }
