@@ -1,5 +1,5 @@
 import Readability from "../../node_modules/@mozilla/readability/Readability.js";
-import _ from 'underscore'
+import debounce from "lodash.debounce";
 
 function parseTextContent() {
   var documentClone = document.cloneNode(true);
@@ -15,7 +15,7 @@ function parseExcerpt() {
 
 function removeLineBreaks(content) {
   const re = /\n(\s*){2,}/g;
-  return content.replace(re, "\n");
+  return content.replace(re, "\n ");
 }
 
 function populate(reasoning, measure) {
@@ -26,7 +26,7 @@ function populate(reasoning, measure) {
 function blockContentByDecision(reply) {
   let decision = /^true$/i.test(reply.decision)
   if (!decision) {
-    blockContent()
+    // blockContent()
     populate(reply.reasoning, reply.decision)
   }
 }
@@ -43,50 +43,31 @@ function blockContentByLikelihood(reply) {
   }
 }
 
-window.addEventListener("load", function(e) {
-  var observer = new MutationObserver(_.debounce(function() {
-    content = parseTextContent();
-    if (content.length > 2000) {
-      content = parseExcerpt();
+function sendContent() {
+  content = parseTextContent();
+  if (content.length > 2000) {
+    content = parseExcerpt();
+  }
+  browser.runtime.sendMessage({content: content})
+  .then(response => {
+    if (response.error) {
+      throw Error(response.error.message);
     }
-    browser.runtime.sendMessage({content: content})
-    .then(response => {
-      if (response.error) {
-        throw Error(response.error.message);
-      }
-      console.log(response.reply);
-      browser.runtime.sendMessage(response.reply)
-      blockContentByDecision(response.reply)
-    })
-    .catch(error => console.error(error));
-  }, 1000));//the ajax function wont be called until 1000 ms have passed
-  
-  observer.observe(window.document, {childList:true});
+    console.log(response.reply);
+    browser.runtime.sendMessage(response.reply)
+    blockContentByDecision(response.reply)
+  })
+  .catch(error => console.error(error));
+}
+
+window.addEventListener("load", function(e) {
+  // var observer = new MutationObserver(debounce(() => {sendContent()}, 10));
+  // observer.observe(window.document, {childList:true, subtree: true});
 })
 
 browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.parse) {
-    content = parseTextContent();
-    if (content.length > 2000) {
-      content = parseExcerpt();
-    }
-    browser.runtime.sendMessage({content: content})
-    .then(response => {
-      if (response.error) {
-        throw Error(response.error.message);
-      }
-      console.log(response.reply);
-      browser.runtime.sendMessage(response.reply)
-      blockContentByDecision(response.reply)
-    })
-    .catch(error => console.error(error));
-    return true;
-  }
-  if (message.error) {
-    console.log(message.error);
-  }
-  if (message.debug && DEBUG) {
-    console.log(message.debug)
+    sendContent();
   }
 })
 

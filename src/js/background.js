@@ -40,7 +40,7 @@ function createSystemPrompt(prompt, intention) {
     return prompt.replace(/\[intention\]/gi, intention);
 }
 
-function ask (systemPrompt, content, apiKey) {
+function ask(systemPrompt, content, apiKey) {
 
     const messages = [
         {"role": "system", "content": systemPrompt},
@@ -123,13 +123,19 @@ async function main(content) {
 window.current_reply = "";
 
 function updateIntention(intention) {
-    browser.storage.local.set({ intention : intention })
-    .then(() => {
-        browser.storage.local.get("intentionHistory")
-        .then(data => {
-            addToIntentionHistoryList(data.intentionHistory, intention);
-        })
+    browser.storage.local.get("intention")
+    .then(data => {
+        if (data.intention !== intention) {
+            browser.storage.local.set({ intention : intention })
+            .then(() => {
+                browser.storage.local.get("intentionHistory")
+                .then(data => {
+                    addToIntentionHistoryList(data.intentionHistory, intention);
+                })
+            })
+        }
     })
+    
 }
 
 function addToIntentionHistoryList(intentionList, intention) {
@@ -200,8 +206,22 @@ browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
     }
 });
 
-function sendParseMessage() {
-    browser.tabs.sendMessage(details.tabId, {parse: true});
+// // /*
+// // Update content when a new tab becomes active.
+// // */
+// browser.tabs.onActivated.addListener(sendParseMessage);
+
+/*
+Update content when a new page is loaded into a tab.
+*/
+browser.tabs.onUpdated.addListener(sendParseMessage);
+
+
+
+function sendParseMessage(tabId, changeInfo, tab) {
+    if (changeInfo && changeInfo.status === 'complete') {
+        browser.tabs.sendMessage(tabId, {parse: true});
+    }
 }
 
   
