@@ -1,7 +1,7 @@
 const openai_url = 'https://api.openai.com/v1/chat/completions';
 
 let defaultSettings = {
-    apiKey: "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",
+    apiKey: "",
     prePrompt: "I want you to act as a productivity assistant. " +
     "I will provide you with a piece of content and you need to determine whether that piece of content " +
     "will be helpful towards achieving my intention. My intention is: '[intention]'. You must answer with" +
