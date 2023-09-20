@@ -1,11 +1,10 @@
 /** @type {import('webpack').Configuration} */
-import WebExtPlugin from 'web-ext-plugin';
-import HtmlWebpackPlugin from 'html-webpack-plugin';
 import CopyPlugin from 'copy-webpack-plugin';
+import HtmlWebpackPlugin from 'html-webpack-plugin';
+import WebExtPlugin from 'web-ext-plugin';
 import webpack from 'webpack';
 
-import path from 'path';
-import { dirname } from 'path';
+import path, { dirname } from 'path';
 import { fileURLToPath } from 'url';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -46,11 +45,11 @@ export default {
       ]
     }),
     new WebExtPlugin({
-        firefox: 'firefoxdeveloperedition',
-        devtools: true,
-        sourceDir: path.resolve(__dirname, 'dist'),
-        buildPackage: true,
-        firefoxProfile: '/Users/damon/Library/Application\ Support/Firefox/Profiles/d6vpdd29.dev-edition-default'
+      firefox: 'firefoxdeveloperedition',
+      devtools: true,
+      sourceDir: path.resolve(__dirname, 'dist'),
+      buildPackage: true,
+      firefoxProfile: '/Users/damon/Library/Application\ Support/Firefox/Profiles/d6vpdd29.dev-edition-default'
     })
   ],
   entry: {
@@ -68,6 +67,10 @@ export default {
           'style-loader',
           'css-loader'
         ]
+      },
+      {
+        test: /\.txt$/, // This will apply to .txt files
+        use: 'raw-loader'
       }
     ]
   },
