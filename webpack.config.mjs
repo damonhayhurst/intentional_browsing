@@ -1,11 +1,10 @@
 /** @type {import('webpack').Configuration} */
-import WebExtPlugin from 'web-ext-plugin';
-import HtmlWebpackPlugin from 'html-webpack-plugin';
 import CopyPlugin from 'copy-webpack-plugin';
+import HtmlWebpackPlugin from 'html-webpack-plugin';
+import WebExtPlugin from 'web-ext-plugin';
 import webpack from 'webpack';
-
-import path from 'path';
-import { dirname } from 'path';
+import Dotenv from 'dotenv-webpack';
+import path, { dirname } from 'path';
 import { fileURLToPath } from 'url';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -46,11 +45,14 @@ export default {
       ]
     }),
     new WebExtPlugin({
-        firefox: 'firefoxdeveloperedition',
-        devtools: true,
-        sourceDir: path.resolve(__dirname, 'dist'),
-        buildPackage: true,
-        firefoxProfile: '/Users/damon/Library/Application\ Support/Firefox/Profiles/d6vpdd29.dev-edition-default'
+      firefox: '/Applications/Firefox\ Developer\ Edition.app/Contents/MacOS/firefox',
+      devtools: true,
+      sourceDir: path.resolve(__dirname, 'dist'),
+      buildPackage: true,
+      firefoxProfile: '/Users/damon/Library/Application\ Support/Firefox/Profiles/d6vpdd29.dev-edition-default'
+    }),
+    new Dotenv({
+      path: '.env'
     })
   ],
   entry: {
@@ -68,6 +70,10 @@ export default {
           'style-loader',
           'css-loader'
         ]
+      },
+      {
+        test: /\.txt$/,
+        use: 'raw-loader'
       }
     ]
   },
