@@ -1,34 +1,65 @@
-import Readability from '@mozilla/readability';
+import Readability from "../../node_modules/@mozilla/readability/Readability.js";
 import _ from 'lodash';
 
-addListeners();
 
-function addListeners() {
+class PageObserver {
 
-  function printText() {
-    backgroundLog("text");
+  constructor(target, callbackFn, timeoutDuration = 3000, debounceWait = 0, debounceMaxWait = 1000) {
+    this.callbackFn = callbackFn;
+    this.target = target;
+    this.timeoutDuration = timeoutDuration;
+    this.debounceWait = debounceWait;
+    this.debounceMaxWait = debounceMaxWait;
   }
 
-  function debounce(fn) {
-    return _.debounce(fn, 1000, {
+  mutationObserverOptions = {
+    childList: true,
+    subtree: true
+  }
+
+  #observeMutation = (mutations, observer) => {
+    clearTimeout(this.timeout);
+    observer.disconnect();
+    this.callbackFn();
+  }
+
+
+  #debounce(fn) {
+    return _.debounce(fn, this.debounceWait, {
       'leading': false,
       'trailing': true,
-      'maxWait': 2000
+      'maxWait': this.debounceMaxWait
     });
   }
 
-  window.addEventListener("load", function (e) {
-    var observer = new MutationObserver(debounce(printText));
-    // var observer = new MutationObserver(() => { sendAnalysis() });
-    observer.observe(document.body, { childList: true, subtree: true });
-  })
+  #startTimeout() {
+    this.timeout = setTimeout(() => {
+      backgroundLog('Timeout');
+      this.callbackFn();
+    }, this.timeoutDuration);
+  }
 
-  // browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
-  //   if (message.parse) {
-  //     sendAnalysis(SEND_ANALYSIS);
-  //   }
-  // })
+  #createFinalMutationObserver() {
+    return new MutationObserver(
+      this.#debounce(this.#observeMutation)
+    );
+  }
+
+  observe() {
+    this.#startTimeout();
+    this.observer = this.#createFinalMutationObserver();
+    this.observer.observe(this.target, this.mutationObserverOptions);
+  }
 }
+
+window.addEventListener("load", function (e) {
+  const pageObserver = new PageObserver(document, () => {
+    const content = getContent();
+    sendContent(content);
+  });
+  pageObserver.observe();
+})
+
 
 class PageAnalysis {
 
@@ -235,4 +266,4 @@ function backgroundLog(message) {
   const currentDate = new Date();
   const currentTime = currentDate.toISOString() + " ";
   browser.runtime.sendMessage({ log: currentTime + message })
-}
+} 
