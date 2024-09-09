@@ -1,27 +1,22 @@
-import myText from '../resources/preprompt.txt';
+import {ChatSettings} from './settings.js';
 
-const openai_url = 'https://api.openai.com/v1/chat/completions';
+const settings = ChatSettings.llama3();
+const defaultIntention = "I want to carry out web development on my firefox extension"
 
-let defaultSettings = {
-    apiKey: process.env.OPENAI_KEY,
-    prePrompt: myText,
-    intention: "I want to carry out web development on my firefox extension"
-}
+setDefaultSettings(settings, defaultIntention)
 
-setDefaultSettings()
-
-function setDefaultSettings() {
+function setDefaultSettings(settings, intention) {
     browser.storage.sync.get(['apiKey', 'prePrompt'])
         .then(data => {
             browser.storage.sync.set({
-                apiKey: data.apiKey ? data.apiKey : defaultSettings.apiKey,
-                prePrompt: data.prePrompt ? data.prePrompt : defaultSettings.prePrompt
+                apiKey: data.apiKey ? data.apiKey : settings.apiKey,
+                prePrompt: data.prePrompt ? data.prePrompt : settings.prePrompt
             })
         })
     browser.storage.local.get("intention")
         .then(data => {
             if (!data.intention) {
-                updateIntention(defaultSettings.intention);
+                updateIntention(intention);
             }
         })
     setCurrentReply("")
@@ -35,21 +30,41 @@ function createSystemPrompt(prompt, intention) {
     return prompt.replace(/\[intention\]/gi, intention);
 }
 
-function ask(systemPrompt, content, apiKey) {
+function askText(systemPrompt, content, apiKey) {
 
     const messages = [
         { "role": "system", "content": systemPrompt },
         { "role": "user", "content": content }
     ];
 
-    return fetch(openai_url, {
-        method: 'POST',
-        headers: {
+    fetchChatCompletion(messages, apiKey)
+ 
+}
+
+function askImage(systemPrompt, image, apiKey) {
+
+    const messages = [
+        { "role": "system", "content": systemPrompt },
+        { "role": "user", "content": image }
+    ];
+
+    fetchChatCompletion(messages, apiKey)
+}
+
+function fetchChatCompletion(messages) {
+    function getHeaders(apiKey) {
+        const authHeader = apiKey ? { 'Authorization': `Bearer ${apiKey}` } : {};
+        return {
             'Content-Type': 'application/json',
-            'Authorization': `Bearer ${apiKey}`,
-        },
+            ...authHeader
+        }
+    }
+
+    return fetch(settings.chatCompletionUrl, {
+        method: 'POST',
+        headers: getHeaders(apiKey),
         body: JSON.stringify({
-            "model": "gpt-3.5-turbo",
+            "model": settings.model,
             'messages': messages,
         })
     })
@@ -108,14 +123,24 @@ async function main(content) {
         const intention = await getIntention();
         const systemPrompt = await getSystemPrompt(intention);
         const apiKey = await getApiKey();
-        return ask(systemPrompt, content, apiKey);
+        return askText(systemPrompt, content, apiKey);
     } catch (e) {
         console.log(e.message);
         throw e;
     }
 }
 
-window.current_reply = "";
+async function main_image(image) {
+    try {
+        const intention = await getIntention();
+        const systemPrompt = await getSystemPrompt(intention);
+        const apiKey = await getApiKey();
+        return ask_image(systemPrompt, content, apiKey);
+    } catch (e) {
+        console.log(e.message);
+        throw e;
+    }
+}
 
 function updateIntention(intention) {
     browser.storage.local.get("intention")
@@ -186,14 +211,15 @@ browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
         updateIntention(message.intention)
     }
     if (message.content) {
-        main(message.content)
-            .then(response => JSON.parse(response))
-            .then(reply => {
-                sendResponse({ reply: reply });
-                setCurrentReply(reply)
-            })
-            .catch(error => sendResponse({ error: error }));
-        return true;
+        // main(message.content)
+        //     .then(response => JSON.parse(response))
+        //     .then(reply => {
+        //         sendResponse({ reply: reply });
+        //         setCurrentReply(reply)
+        //     })
+        //     .catch(error => sendResponse({ error: error }));
+        // return true;
+        captureScreenshot()
     }
     if (message.favorite) {
         addRemoveIntentionFromFavoritesMap(message.favorite);
@@ -214,6 +240,17 @@ Update content when a new page is loaded into a tab.
 */
 // browser.tabs.onUpdated.addListener(sendParseMessage);
 
+function captureScreenshot() {
+    browser.tabs.captureVisibleTab(null, { format: "png" })
+        .then((imageUri) => {
+            console.log("Captured screenshot as a base64 data URL:");
+            console.log(imageUri); // This will output the base64 data URL of the screenshot
+            // You can save it or display it as needed
+        })
+        .catch((error) => {
+            console.error("Error capturing screenshot: ", error);
+        });
+}
 
 
 function sendParseMessage(tabId, changeInfo, tab) {

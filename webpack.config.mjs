@@ -52,7 +52,8 @@ export default {
       firefoxProfile: '/Users/damon/Library/Application\ Support/Firefox/Profiles/d6vpdd29.dev-edition-default'
     }),
     new Dotenv({
-      path: '.env'
+      path: '.env',
+      safe: true
     })
   ],
   entry: {

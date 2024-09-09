@@ -205,7 +205,10 @@ function getAnalysisContent(analysis) {
       if (value === undefined || value === "") {
         return undefined; // Exclude from the final string
       }
-      return value;
+      else {
+        backgroundLog(fn.name)
+        return value;
+      }
     })
     if (resultJson.length < maxLength) {
       return result;

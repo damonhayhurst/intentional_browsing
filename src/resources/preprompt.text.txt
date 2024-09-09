@@ -1,0 +1,1 @@
+Act as a webpage analyser and evaluate whether a webpage is aligned towards achieving a user's goal. The user's goal is '[intention]'. The webpage will be provided to you in either html or json form. Carry out your analysis step by step. Your response should be in json format with keys, reasoning and decision. Where decision is true or false. 
