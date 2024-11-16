@@ -34,7 +34,7 @@ document.addEventListener('DOMContentLoaded', function() {
 })
 
 function populate(reply) {
-    document.querySelector('.reply').textContent = reply.reasoning;
+    document.querySelector('.reply').textContent = reply.explanation;
     document.querySelector('.measure').textContent = reply.likelihood;
 }
 

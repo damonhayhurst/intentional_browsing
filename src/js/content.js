@@ -1,66 +1,17 @@
-import { PageAnalysis } from './analysis.js';
+import { PageAnalysisFactory } from './PageAnalysisFactory.js';
+import { PageObserver } from './PageObserver.js';
 import { backgroundLog } from './log.js';
-import _ from 'lodash';
 
-
-class PageObserver {
-
-  constructor(target, callbackFn, timeoutDuration = 3000, debounceWait = 0, debounceMaxWait = 1000) {
-    this.callbackFn = callbackFn;
-    this.target = target;
-    this.timeoutDuration = timeoutDuration;
-    this.debounceWait = debounceWait;
-    this.debounceMaxWait = debounceMaxWait;
-  }
-
-  mutationObserverOptions = {
-    childList: true,
-    subtree: true
-  }
-
-  #observeMutation = (mutations, observer) => {
-    clearTimeout(this.timeout);
-    observer.disconnect();
-    backgroundLog("Mutation observed");
-    this.callbackFn();
-  }
-
-
-  #debounce(fn) {
-    return _.debounce(fn, this.debounceWait, {
-      'leading': false,
-      'trailing': true,
-      'maxWait': this.debounceMaxWait
-    });
-  }
-
-  #startTimeout() {
-    this.timeout = setTimeout(() => {
-      backgroundLog('Timeout');
-      this.callbackFn();
-    }, this.timeoutDuration);
-  }
-
-  #createFinalMutationObserver() {
-    return new MutationObserver(
-      this.#debounce(this.#observeMutation)
-    );
-  }
-
-  observe() {
-    this.#startTimeout();
-    this.observer = this.#createFinalMutationObserver();
-    this.observer.observe(this.target, this.mutationObserverOptions);
-  }
-}
+const DO_BLOCK = true
 
 window.addEventListener("load", function (e) {
-  const pageObserver = new PageObserver(document, () => {
-    const content = new PageAnalysis().getHtml()
-    const fullHtml = document.documentElement.outerHTML;
-    sendHtml(fullHtml)
+  const observer = new PageObserver(document, {timeoutDuration: 5000, debounceWait: 1000, debounceMaxWait: 2000});
+  observer.observe(() => {
+    const analysis = PageAnalysisFactory.create(document);
+    analysis.parse();
+    backgroundLog(analysis.meta);
+    sendContent(analysis.output);
   });
-  pageObserver.observe();
 });
 
 
@@ -71,7 +22,7 @@ function populate(reasoning, measure) {
 
 function blockContentByDecision(reply) {
   let decision = /^true$/i.test(reply.decision)
-  if (!decision) {
+  if (!decision && DO_BLOCK) {
     blockContent()
     populate(reply.reasoning, reply.decision)
   }
@@ -87,6 +38,19 @@ function blockContentByLikelihood(reply) {
     blockContent()
     populate(reply.reasoning, reply.likelihood);
   }
+}
+
+function sendAction(action = 'getSource') {
+  browser.runtime.sendMessage({ action: content })
+    .then(response => {
+      if (response.error) {
+        throw Error(response.error);
+      }
+      console.log(response.reply);
+      browser.runtime.sendMessage(response.reply)
+      blockContentByDecision(response.reply)
+    })
+    .catch(error => console.error(error));
 }
 
 function sendContent(content) {

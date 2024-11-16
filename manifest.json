@@ -5,7 +5,7 @@
 	"version": "0.0.1",
 	"background": {
 		"scripts" : ["js/background.js"],
-		"persistent": false
+		"persistent": true
 	},
 	"content_scripts": [
 		{
@@ -16,7 +16,7 @@
 			"run_at": "document_end"
 		}
 	],
-	"permissions": ["tabs", "activeTab", "storage", "webNavigation"],
+	"permissions": ["tabs", "activeTab", "storage", "webNavigation", "webRequest", "<all_urls>"],
 	"browser_action": {
 		"default_title": "Popup",
 		"default_popup": "html/popup.html"
