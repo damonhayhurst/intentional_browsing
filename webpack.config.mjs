@@ -17,6 +17,11 @@ export default {
     path: path.resolve(__dirname, 'dist'),
     clean: true,
   },
+  resolve: {
+    alias: {
+      '@transformers': path.resolve(__dirname, 'node_modules/@huggingface/transformers')
+    }
+  },
   plugins: [
     new webpack.DefinePlugin({
       DEBUG: true

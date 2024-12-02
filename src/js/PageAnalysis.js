@@ -4,8 +4,9 @@ import { backgroundLog } from "./log.js";
 
 export class PageAnalysis {
 
-    constructor(document) {
+    constructor(document, maxLength = 8000) {
         this.document = new DOMParser().parseFromString(document.documentElement.outerHTML, 'text/html');
+        this.maxLength = maxLength;
     }
 
     parse() {
@@ -30,7 +31,7 @@ export class PageAnalysis {
 
     #removeExtreneousNewLines(text) {
         return text
-            .replace(/\n{2,}/g, '\n') 
+            .replace(/\n{2,}/g, '\n')
     }
 
     #newLineToSpace(text) {
@@ -94,7 +95,7 @@ export class PageAnalysis {
         }
     }
 
-} 
+}
 
 export class TurndownAnalysis extends PageAnalysis {
 
@@ -154,6 +155,10 @@ export class ReadabilityAnalysis extends PageAnalysis {
         return this.readability.content;
     }
 
+    getExcerpt() {
+        return this.readability.excerpt;
+    }
+
     // getContent() {
     //     const content = this.readability.content;
     //     let node = new DOMParser().parseFromString(content, 'text/html');
@@ -164,7 +169,8 @@ export class ReadabilityAnalysis extends PageAnalysis {
     // }
 
     getOutput() {
-        return this.cleanText(this.getTextContent());
+        let content = this.cleanText(this.getTextContent());
+        return content;
     }
 }
 

@@ -1,3 +1,4 @@
+import prePromptText from '../resources/preprompt.text.txt';
 export class UserStorageInterface {
 
     static setDefaultSettingsIfNotExists(chatSettings, intention) {
@@ -5,7 +6,7 @@ export class UserStorageInterface {
             .then(data => {
                 browser.storage.sync.set({
                     apiKey: data.apiKey ? data.apiKey : chatSettings.apiKey,
-                    prePrompt: data.prePrompt ? data.prePrompt : chatSettings.prePrompt
+                    prePrompt: data.prePrompt ? data.prePrompt : prePromptText
                 })
             })
         browser.storage.local.get("intention")
@@ -27,12 +28,17 @@ export class UserStorageInterface {
         return apiKey || null;
     }
 
-    static async getSystemPrompt(intention) {
+    static async getSystemPrompt() {
         const { prePrompt } = await browser.storage.sync.get("prePrompt");
-        return prePrompt ? this.#createSystemPrompt(prePrompt, intention) : null;
+        return prePrompt || null;
     }
 
-    static #createSystemPrompt(prompt, intention) {
+    static async createSystemPrompt(intention, fromFile = false) {
+        const prePrompt = fromFile ? prePromptText : this.getSystemPrompt()
+        return prePrompt ? this.#formatSystemPrompt(prePrompt, intention) : null;
+    }
+
+    static #formatSystemPrompt(prompt, intention) {
         return prompt.replace(/\[intention\]/gi, intention);
     }
 

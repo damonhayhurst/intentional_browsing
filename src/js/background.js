@@ -1,23 +1,39 @@
 import { OllamaSettings, OpenAISettings, ReaderLMSettings } from './settings.js';
 import { UserStorageInterface } from './user.js';
-import { fetchChatCompletion } from './completion.js';
+import { ChatCompletion, ChatGenerate, fetchChatCompletion, fetchChatGeneration } from './completion.js';
 import { PageAnalysis } from './PageAnalysis.js';
+import {
+    AutoTokenizer,
+    // Add any other specific tokenizer classes or functions you need
+} from '@transformers';
 
-const ChatSettings = new OllamaSettings();
+
+const ChatSettings = OllamaSettings;
+const MODEL = "qwen2.5:3b" 
+const HF_MODEL = "Qwen/Qwen2.5-3B";
 const User = UserStorageInterface;
+const Tokenizer = AutoTokenizer;
 User.setDefaultSettingsIfNotExists(ChatSettings, "I want to carry out web development on my firefox extension")
 setCurrentReply("")
 
-function setCurrentReply(reply) {
-    window.current_reply = reply;
+async function getNTokenPrompt(completion, n=4000) {
+    const tokenizer = await AutoTokenizer.from_pretrained(HF_MODEL)
+    const input_ids = await tokenizer.apply_chat_template(
+        completion.messages,
+        {
+            tokenize: true,
+            return_tensor: false,
+            add_generation_prompt: true
+        }
+    );
+    const promptEnd = input_ids.splice(-5);
+    const promptStart = input_ids.slice(0, n-5)
+    return tokenizer.decode([...promptStart, ...promptEnd])
 }
 
-function askText(systemPrompt, content, apiKey) {
-    const messages = [
-        { "role": "system", "content": systemPrompt },
-        { "role": "user", "content": content }
-    ];
-    return fetchChatCompletion(messages, apiKey, ChatSettings)
+
+function setCurrentReply(reply) {
+    window.current_reply = reply;
 }
 
 function askReaderLM(content) {
@@ -30,14 +46,35 @@ function askReaderLM(content) {
 
 async function main(content) {
     const intention = await User.getIntention();
-    const systemPrompt = ChatSettings.createSystemPrompt(intention);
+    const systemPrompt = await User.createSystemPrompt(intention, true);
     const apiKey = await User.getApiKey();
-    return askText(systemPrompt, content, apiKey);
+    const completion = new ChatGenerate(systemPrompt, content)
+    const template = await getNTokenPrompt(completion, 4000)
+    const settings = new ChatSettings({ model: MODEL, chatCompletionUrl: 'http://localhost:11434/api/generate', contextSize: 4000 })
+    return fetchChatGeneration(template, apiKey, settings)
+        .then(async data => parseCompletionResponse(data.response));
 }
 
 function parseCompletionResponse(response) {
     response = response.replace(/\n/g, '');
-    return JSON.parse(response)
+    response = response.replace(/\\/g, '')
+    response = response.replace(/```/g, '')
+    response = extractWithCurlyBrackets(response)   
+    try {
+        if (!response) {
+            throw new Error("No content found in the response");
+        }
+        return JSON.parse(response)
+    } catch (e) {
+        console.error('Error parsing JSON:', e);
+        throw new Error('Failed to parse response: ' + response);
+    }
+}
+
+function extractWithCurlyBrackets(str) {
+    const regex = /{[^}]*}/;
+    const match = str.match(regex);
+    return match ? match[0] : null;
 }
 
 const messageHandlers = {
@@ -47,8 +84,8 @@ const messageHandlers = {
     },
     content: async (message, sendResponse) => {
         try {
-            const response = await main(message.content);
-            const reply = parseCompletionResponse(response);
+            const reply = await main(message.content);
+            console.log(reply)
             sendResponse({ reply });
             setCurrentReply(reply);
         } catch (error) {
@@ -85,7 +122,6 @@ const messageHandlers = {
         User.toggleShowFavoriteInHistoryList(message.favorite);
     },
     log: (message) => {
-        console.log(currentTime)
         console.log(message.log);
     }
 };

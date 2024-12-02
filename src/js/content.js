@@ -2,7 +2,7 @@ import { PageAnalysisFactory } from './PageAnalysisFactory.js';
 import { PageObserver } from './PageObserver.js';
 import { backgroundLog } from './log.js';
 
-const DO_BLOCK = true
+const DO_BLOCK = true;
 
 window.addEventListener("load", function (e) {
   const observer = new PageObserver(document, {timeoutDuration: 5000, debounceWait: 1000, debounceMaxWait: 2000});
@@ -21,10 +21,10 @@ function populate(reasoning, measure) {
 }
 
 function blockContentByDecision(reply) {
-  let decision = /^true$/i.test(reply.decision)
+  let decision = /^true$/i.test(reply.aligned)
   if (!decision && DO_BLOCK) {
     blockContent()
-    populate(reply.reasoning, reply.decision)
+    populate(reply.reasoning, reply.aligned)
   }
 }
 

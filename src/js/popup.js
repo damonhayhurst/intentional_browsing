@@ -8,7 +8,7 @@ browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
 });
 
 function populate(reply) {
-    document.querySelector('.reply').textContent = reply.explanation;
+    document.querySelector('.reply').textContent = reply.reasoning;
     document.querySelector('.measure').textContent = reply.aligned;
 }
 
