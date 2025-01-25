@@ -2,35 +2,36 @@ import { OllamaSettings, OpenAISettings, ReaderLMSettings } from './settings.js'
 import { UserStorageInterface } from './user.js';
 import { ChatCompletion, ChatGenerate, fetchChatCompletion, fetchChatGeneration } from './completion.js';
 import { PageAnalysis } from './PageAnalysis.js';
-import {
-    AutoTokenizer,
-    // Add any other specific tokenizer classes or functions you need
-} from '@transformers';
-
+import {AutoTokenizer} from '@transformers';
 
 const ChatSettings = OllamaSettings;
 const MODEL = "qwen2.5:3b" 
-const HF_MODEL = "Qwen/Qwen2.5-3B";
+const HF_MODEL = "Qwen/Qwen2.5-3B-Instruct";
 const User = UserStorageInterface;
 const Tokenizer = AutoTokenizer;
+
+// Maintain a reference to the current active fetch and its AbortController
+let currentFetchController = null;
+
 User.setDefaultSettingsIfNotExists(ChatSettings, "I want to carry out web development on my firefox extension")
 setCurrentReply("")
 
-async function getNTokenPrompt(completion, n=4000) {
+async function getNTokenPrompt(completion, n=4000, buffer=25) {
     const tokenizer = await AutoTokenizer.from_pretrained(HF_MODEL)
     const input_ids = await tokenizer.apply_chat_template(
         completion.messages,
-        {
+        {   
             tokenize: true,
             return_tensor: false,
             add_generation_prompt: true
         }
     );
-    const promptEnd = input_ids.splice(-5);
-    const promptStart = input_ids.slice(0, n-5)
-    return tokenizer.decode([...promptStart, ...promptEnd])
+    const promptEnd = input_ids.splice(-5); 
+    const promptStart = input_ids.slice(0, n - buffer - 6);
+    const nTokenPrompt = tokenizer.decode([...promptStart, ...promptEnd])
+    console.log(nTokenPrompt)
+    return nTokenPrompt
 }
-
 
 function setCurrentReply(reply) {
     window.current_reply = reply;
@@ -45,14 +46,37 @@ function askReaderLM(content) {
 }
 
 async function main(content) {
+    cancelPriorFetches();
+    currentFetchController = new AbortController();
     const intention = await User.getIntention();
-    const systemPrompt = await User.createSystemPrompt(intention, true);
+    const systemPrompt = await User.createSystemPrompt(intention);
     const apiKey = await User.getApiKey();
     const completion = new ChatGenerate(systemPrompt, content)
     const template = await getNTokenPrompt(completion, 4000)
-    const settings = new ChatSettings({ model: MODEL, chatCompletionUrl: 'http://localhost:11434/api/generate', contextSize: 4000 })
-    return fetchChatGeneration(template, apiKey, settings)
-        .then(async data => parseCompletionResponse(data.response));
+    const settings = new ChatSettings({ 
+        model: MODEL, 
+        chatCompletionUrl: 'http://localhost:11434/api/generate', 
+        contextSize: 4000, 
+        format: "json"
+    })
+    
+    return fetchChatGeneration(template, apiKey, settings, currentFetchController.signal)
+        .then(async data => parseCompletionResponse(data.response))
+        .catch(err => {
+            if (err.name === 'AbortError') {
+                console.log('Fetches aborted');
+                return null; // or handle aborted fetch as needed
+            }
+            throw err; // Re-throw other errors
+        });
+}
+
+function cancelPriorFetches() {
+    // Abort the current fetch if it exists
+    if (currentFetchController) {
+        currentFetchController.abort();
+        currentFetchController = null;
+    }
 }
 
 function parseCompletionResponse(response) {
@@ -64,7 +88,7 @@ function parseCompletionResponse(response) {
         if (!response) {
             throw new Error("No content found in the response");
         }
-        return JSON.parse(response)
+        return JSON.parse(response);
     } catch (e) {
         console.error('Error parsing JSON:', e);
         throw new Error('Failed to parse response: ' + response);
@@ -79,7 +103,6 @@ function extractWithCurlyBrackets(str) {
 
 const messageHandlers = {
     intention: async (message) => {
-        console.log(message.intention);
         await User.updateIntention(message.intention);
     },
     content: async (message, sendResponse) => {
@@ -122,7 +145,7 @@ const messageHandlers = {
         User.toggleShowFavoriteInHistoryList(message.favorite);
     },
     log: (message) => {
-        console.log(message.log);
+        console.debug(message.log);
     }
 };
 
@@ -138,33 +161,6 @@ browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
     }
 });
 
-function sendParseMessage(tabId, changeInfo, tab) {
-    if (changeInfo && changeInfo.status === 'complete') {
-        browser.tabs.sendMessage(tabId, { parse: true });
-    }
-}
-
-let fullSource = {}
-
-// browser.webRequest.onCompleted.addListener(
-//     function (details) {
-//         if (details.type === "main_frame") {
-//             fetch(details.url)
-//                 .then(response => response.text())
-//                 .then(text => {
-//                     fullSource[details.tabId] = text;
-//                     const parser = new DOMParser();
-//                     const doc = parser.parseFromString(text, 'text/html');
-//                     const analysis = new PageAnalysis(doc)
-    
-//                     const body = analysis.getBodyHTML()
-//                     main(body)
-//                     .then(response => {
-//                         const reply = parseCompletionResponse(response);
-//                     })
-//                 })
-//                 .catch(error => console.error('Error fetching source:', error));
-//         }
 //     },
 //     { urls: ["<all_urls>"] },
 //     ["responseHeaders"]

@@ -35,7 +35,7 @@ export class BaseSettings {
 }
 
 export class OpenAISettings extends BaseSettings {
-    static chatCompletionUrl = "https://api.openai.com/v1/chat/completions";
+    static llmInstanceUrl = "https://api.openai.com/v1/chat/completions";
     static apiKey = process.env.OPENAI_API_KEY;
     static model = "gpt-3.5-turbo";
 
@@ -50,13 +50,14 @@ export class OllamaSettings extends BaseSettings {
     static defaultKeepAlive = "3m";
     static defaultContextSize = 4000;
     static defaultNumPredict = 128;
-
+    static defaultFormat = "json"
     constructor({
         chatCompletionUrl = OllamaSettings.defaultChatCompletionUrl,
         model = OllamaSettings.defaultModel,
         keepAlive = OllamaSettings.defaultKeepAlive,
         contextSize = OllamaSettings.defaultContextSize,
-        numPredict = OllamaSettings.defaultNumPredict
+        numPredict = OllamaSettings.defaultNumPredict,
+        format = OllamaSettings.defaultFormat
     } = {}) {
         super();
         this.chatCompletionUrl = chatCompletionUrl;
@@ -64,6 +65,7 @@ export class OllamaSettings extends BaseSettings {
         this.keepAlive = keepAlive;
         this.contextSize = contextSize;
         this.numPredict = numPredict;
+        this.format = format;
         this.options = {
             "num_ctx": this.contextSize,
             "num_predict": this.numPredict
@@ -71,7 +73,7 @@ export class OllamaSettings extends BaseSettings {
     }
 
 
-    getFetchChatCompletion(messages, apiKey) {
+    getFetchChatCompletion(messages, apiKey, signal) {
         const options = this.options ? { options: this.options } : {};
         const url = this.chatCompletionUrl || this.constructor.chatCompletionUrl;
         const model = this.model || this.constructor.model;
@@ -80,10 +82,11 @@ export class OllamaSettings extends BaseSettings {
         return fetch(url, {
             method: 'POST',
             headers,
+            signal: signal,
             body: JSON.stringify({
                 "model": model,
                 'messages': messages,
-                "format": "json",
+                "format": this.format,
                 ...options
             })
         });
@@ -102,8 +105,9 @@ export class OllamaSettings extends BaseSettings {
                 "model": model,
                 "prompt": prompt,
                 "stream": false,
-                "format": "json",
+                "format": this.format,
                 "raw": true,
+                "keep_alive": this.keepAlive,
                 ...options
             })
         });

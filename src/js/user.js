@@ -2,11 +2,12 @@ import prePromptText from '../resources/preprompt.text.txt';
 export class UserStorageInterface {
 
     static setDefaultSettingsIfNotExists(chatSettings, intention) {
-        browser.storage.sync.get(['apiKey', 'prePrompt'])
+        browser.storage.sync.get(['apiKey', 'prePrompt', 'llmUrl'])
             .then(data => {
                 browser.storage.sync.set({
                     apiKey: data.apiKey ? data.apiKey : chatSettings.apiKey,
-                    prePrompt: data.prePrompt ? data.prePrompt : prePromptText
+                    prePrompt: data.prePrompt ? data.prePrompt : prePromptText,
+                    llmUrl: data.llmUrl ? data.llmUrl : chatSettings.llmUrl
                 })
             })
         browser.storage.local.get("intention")
@@ -33,13 +34,22 @@ export class UserStorageInterface {
         return prePrompt || null;
     }
 
+    static async getLLMUrl() {
+        const { llmUrl } = await browser.storage.sync.get("llmUrl");
+        return llmUrl || null;
+    }
+
     static async createSystemPrompt(intention, fromFile = false) {
-        const prePrompt = fromFile ? prePromptText : this.getSystemPrompt()
+        const prePrompt = fromFile ? prePromptText : await this.getSystemPrompt()
         return prePrompt ? this.#formatSystemPrompt(prePrompt, intention) : null;
     }
 
     static #formatSystemPrompt(prompt, intention) {
-        return prompt.replace(/\[intention\]/gi, intention);
+        if (/\[intention\]/gi.test(prompt)) {
+            return prompt.replace(/\[intention\]/gi, intention);
+        } else {
+            return prompt
+        }
     }
 
     static async getIntentionHistory() {

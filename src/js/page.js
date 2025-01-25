@@ -15,6 +15,10 @@ document.querySelector("#intention-form").addEventListener("submit", function(e)
     });
     if (e.submitter.name === "try-again") {
         history.back();
+        sendTryAgain();
+    }
+    if (e.submitter.name === "just-this-once") {
+        history.back();
     }
 });
 
@@ -24,6 +28,11 @@ browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
         populate(message.reply);
     }
 })
+
+function sendTryAgain() {
+    browser.runtime.sendMessage({ tryAgain: true })
+        .catch(error => console.error(error));
+}
 
 document.addEventListener('DOMContentLoaded', function() {
     browser.runtime.getBackgroundPage(window => {
@@ -35,7 +44,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
 function populate(reply) {
     document.querySelector('.reply').textContent = reply.reasoning;
-    document.querySelector('.measure').textContent = reply.likelihood;
+    // document.querySelector('.measure').textContent = reply.likelihood;
 }
 
 function populateIntention(intention) {

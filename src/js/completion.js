@@ -37,8 +37,12 @@ export class ChatGenerate {
 
     constructor(systemPrompt, content) {
         this.systemPrompt = systemPrompt;
-        this.content = content;
+        this.content = this.format(content);
         this.messages = this.getMessages();
+    }
+
+    format(content) {
+        return content.replace(/[^a-zA-Z0-9\s]+/g, "")
     }
 
     getMessages() {
@@ -49,8 +53,8 @@ export class ChatGenerate {
     }
 }
 
-export function fetchChatGeneration(template, apiKey, chatSettings) {
-    return chatSettings.getFetchChatGeneration(template, apiKey)
+export function fetchChatGeneration(template, apiKey, chatSettings, signal) {
+    return chatSettings.getFetchChatGeneration(template, apiKey, signal)
         .then(response => {
             if (response.status === 401) {
                 throw Error("Check your API key is present in the preferences page for this extension")

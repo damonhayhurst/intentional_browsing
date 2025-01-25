@@ -9,11 +9,11 @@
 	},
 	"content_scripts": [
 		{
-			"matches": ["*://*/*"],
+			"matches": ["<all_urls>"],
 			"js": [
 				"js/content.js"
 			],
-			"run_at": "document_end"
+			"run_at": "document_idle"
 		}
 	],
 	"permissions": ["tabs", "activeTab", "storage", "webNavigation", "webRequest", "<all_urls>"],

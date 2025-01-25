@@ -1,19 +1,23 @@
 import { PageAnalysisFactory } from './PageAnalysisFactory.js';
 import { PageObserver } from './PageObserver.js';
 import { backgroundLog } from './log.js';
+import { WindowObserver } from './WindowObserver.js';
 
 const DO_BLOCK = true;
 
-window.addEventListener("load", function (e) {
-  const observer = new PageObserver(document, {timeoutDuration: 5000, debounceWait: 1000, debounceMaxWait: 2000});
-  observer.observe(() => {
-    const analysis = PageAnalysisFactory.create(document);
-    analysis.parse();
-    backgroundLog(analysis.meta);
-    sendContent(analysis.output);
+function createWindowObserver() {
+  new WindowObserver(() => {
+    const observer = new PageObserver(document, { timeoutDuration: 5000, debounceWait: 1000, debounceMaxWait: 2000 });
+    observer.observe(() => {
+      const analysis = PageAnalysisFactory.create(document);
+      analysis.parse();
+      backgroundLog(analysis.meta);
+      sendContent(analysis.output);
+    });
   });
-});
+}
 
+createWindowObserver();
 
 function populate(reasoning, measure) {
   document.querySelector('.reply').textContent = reasoning;
@@ -67,6 +71,8 @@ function sendContent(content) {
     .catch(error => console.error(error));
 }
 
-function sendHtml(html) {
-  browser.runtime.sendMessage({ html: html })
-}
+browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
+  if (message.tryAgain) {
+    createWindowObserver();
+  }
+})
