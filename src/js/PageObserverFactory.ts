@@ -1,7 +1,17 @@
 import { PageObserver } from "./PageObserver.js";
 
+interface PageObserverOptions {
+    timeoutDuration: number;
+    debounceWait: number;
+    debounceMaxWait: number;
+}
+
+type DomainOptionsMap = {
+    [key: string]: PageObserverOptions;
+};
+
 export class PageObserverFactory {
-    static OPTIONS_MAP = {
+    static readonly OPTIONS_MAP: DomainOptionsMap = {
         'default': {
             timeoutDuration: 5000,
             debounceWait: 1000,
@@ -44,7 +54,7 @@ export class PageObserverFactory {
         }
     };
 
-    static create(target, domain = null) {
+    static create(target: Node, domain: string | null = null): PageObserver {
         if (!domain && target.ownerDocument) {
             domain = target.ownerDocument.location.hostname.replace(/^www\./, '');
         }
@@ -52,7 +62,10 @@ export class PageObserverFactory {
         return new PageObserver(target, options);
     }
 
-    static getOptions(domain) {
+    static getOptions(domain: string | null): PageObserverOptions {
+        if (!domain) {
+            return PageObserverFactory.OPTIONS_MAP['default'];
+        }
         return PageObserverFactory.OPTIONS_MAP[domain] || PageObserverFactory.OPTIONS_MAP['default'];
     }
 }
