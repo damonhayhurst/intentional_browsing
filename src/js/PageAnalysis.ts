@@ -1,4 +1,4 @@
-import Readability, { ReadabilityArticle } from "@mozilla/readability";
+import Readability, {ReadabilityArticle} from "@mozilla/readability";
 import TurndownService from "turndown";
 import { backgroundLog } from "./log";
 

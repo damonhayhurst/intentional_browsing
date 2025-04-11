@@ -1,4 +1,4 @@
-import { HTMLAnalysis, ReadabilityAnalysis, TurndownAnalysis, PageAnalysis } from "./PageAnalysis.js";
+import { HTMLAnalysis, ReadabilityAnalysis, TurndownAnalysis, PageAnalysis } from "./PageAnalysis";
 
 type AnalysisConstructor = new (document: Document) => PageAnalysis;
 type AnalysisMap = {

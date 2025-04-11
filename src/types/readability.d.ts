@@ -1,4 +1,4 @@
-declare module '@mozilla/readability/Readability.js' {
+declare module '@mozilla/readability' {
     export interface ReadabilityArticle {
         title: string;
         content: string;

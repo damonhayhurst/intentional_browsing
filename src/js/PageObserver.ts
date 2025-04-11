@@ -1,4 +1,4 @@
-import { backgroundLog } from './log.js';
+import { backgroundLog } from './log';
 import debounce from 'lodash.debounce';
 
 interface PageObserverOptions {
