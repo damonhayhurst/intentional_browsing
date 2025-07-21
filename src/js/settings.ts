@@ -1,13 +1,30 @@
-export class BaseSettings {
-    constructor() {
-        
+interface ChatMessage {
+    role: string;
+    content: string;
+}
+
+interface OllamaOptions {
+    chatCompletionUrl?: string;
+    model?: string;
+    keepAlive?: string;
+    contextSize?: number;
+    numPredict?: number;
+    format?: string;
+}
+
+export abstract class BaseSettings {
+    protected preprompt?: string;
+    protected options?: Record<string, any>;
+    protected chatCompletionUrl?: string;
+    protected model?: string;
+
+    constructor() {}
+
+    createSystemPrompt(intention: string): string {
+        return this.preprompt?.replace(/\[intention\]/gi, intention) || '';
     }
 
-    createSystemPrompt(intention) {
-        return this.preprompt.replace(/\[intention\]/gi, intention);
-    }
-
-    createHeaders(apiKey) {
+    createHeaders(apiKey?: string | null): Record<string, string> {
         const authHeader = apiKey ? { 'Authorization': `Bearer ${apiKey}` } : {};
         const headers = {
             'Content-Type': 'application/json',
@@ -16,11 +33,11 @@ export class BaseSettings {
         return headers;
     }
 
-    getFetchChatCompletion(messages, apiKey) {
+    getFetchChatCompletion(messages: ChatMessage[], apiKey?: string | null): Promise<Response> {
         const options = this.options ? { options: this.options } : {};
-        const url = this.chatCompletionUrl || this.constructor.chatCompletionUrl;
-        const model = this.model || this.constructor.model;
-        const headers = this.createHeaders(apiKey)
+        const url = this.chatCompletionUrl || (this.constructor as any).chatCompletionUrl;
+        const model = this.model || (this.constructor as any).model;
+        const headers = this.createHeaders(apiKey);
 
         return fetch(url, {
             method: 'POST',
@@ -28,6 +45,23 @@ export class BaseSettings {
             body: JSON.stringify({
                 "model": model,
                 'messages': messages,
+                ...options
+            })
+        });
+    }
+
+    getFetchChatGeneration(template: string, apiKey?: string | null): Promise<Response> {
+        const options = this.options ? { options: this.options } : {};
+        const url = this.chatCompletionUrl || (this.constructor as any).chatCompletionUrl;
+        const model = this.model || (this.constructor as any).model;
+        const headers = this.createHeaders(apiKey);
+
+        return fetch(url, {
+            method: 'POST',
+            headers,
+            body: JSON.stringify({
+                "model": model,
+                "prompt": template,
                 ...options
             })
         });
@@ -50,7 +84,13 @@ export class OllamaSettings extends BaseSettings {
     static defaultKeepAlive = "3m";
     static defaultContextSize = 4000;
     static defaultNumPredict = 128;
-    static defaultFormat = "json"
+    static defaultFormat = "json";
+
+    private keepAlive: string;
+    private contextSize: number;
+    private numPredict: number;
+    private format: string;
+
     constructor({
         chatCompletionUrl = OllamaSettings.defaultChatCompletionUrl,
         model = OllamaSettings.defaultModel,
@@ -58,7 +98,7 @@ export class OllamaSettings extends BaseSettings {
         contextSize = OllamaSettings.defaultContextSize,
         numPredict = OllamaSettings.defaultNumPredict,
         format = OllamaSettings.defaultFormat
-    } = {}) {
+    }: OllamaOptions = {}) {
         super();
         this.chatCompletionUrl = chatCompletionUrl;
         this.model = model;
@@ -72,12 +112,11 @@ export class OllamaSettings extends BaseSettings {
         };
     }
 
-
-    getFetchChatCompletion(messages, apiKey, signal) {
+    getFetchChatCompletion(messages: ChatMessage[], apiKey?: string | null, signal?: AbortSignal): Promise<Response> {
         const options = this.options ? { options: this.options } : {};
-        const url = this.chatCompletionUrl || this.constructor.chatCompletionUrl;
-        const model = this.model || this.constructor.model;
-        const headers = this.createHeaders(apiKey)
+        const url = this.chatCompletionUrl || (this.constructor as any).chatCompletionUrl;
+        const model = this.model || (this.constructor as any).model;
+        const headers = this.createHeaders(apiKey);
 
         return fetch(url, {
             method: 'POST',
@@ -92,11 +131,11 @@ export class OllamaSettings extends BaseSettings {
         });
     }
 
-    getFetchChatGeneration(prompt, apiKey) {
+    getFetchChatGeneration(prompt: string, apiKey?: string | null): Promise<Response> {
         const options = this.options ? { options: this.options } : {};
-        const url = this.chatCompletionUrl || this.constructor.chatCompletionUrl;
-        const model = this.model || this.constructor.model;
-        const headers = this.createHeaders(apiKey)
+        const url = this.chatCompletionUrl || (this.constructor as any).chatCompletionUrl;
+        const model = this.model || (this.constructor as any).model;
+        const headers = this.createHeaders(apiKey);
 
         return fetch(url, {
             method: 'POST',

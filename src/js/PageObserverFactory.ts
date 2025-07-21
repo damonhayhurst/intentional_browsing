@@ -1,7 +1,8 @@
 import { PageObserver } from "./PageObserver.js";
+import { ObserverOptions } from "../types/index.js";
 
 export class PageObserverFactory {
-    static OPTIONS_MAP = {
+    static OPTIONS_MAP: Record<string, ObserverOptions> = {
         'default': {
             timeoutDuration: 5000,
             debounceWait: 1000,
@@ -44,7 +45,7 @@ export class PageObserverFactory {
         }
     };
 
-    static create(target, domain = null) {
+    static create(target: Node, domain: string | null = null): PageObserver {
         if (!domain && target.ownerDocument) {
             domain = target.ownerDocument.location.hostname.replace(/^www\./, '');
         }
@@ -52,7 +53,7 @@ export class PageObserverFactory {
         return new PageObserver(target, options);
     }
 
-    static getOptions(domain) {
-        return PageObserverFactory.OPTIONS_MAP[domain] || PageObserverFactory.OPTIONS_MAP['default'];
+    static getOptions(domain: string | null): ObserverOptions {
+        return PageObserverFactory.OPTIONS_MAP[domain || 'default'] || PageObserverFactory.OPTIONS_MAP['default'];
     }
 }

@@ -18,8 +18,10 @@ export default {
     clean: true,
   },
   resolve: {
+    extensions: ['.tsx', '.ts', '.js'],
     alias: {
-      '@transformers': path.resolve(__dirname, 'node_modules/@huggingface/transformers')
+      '@transformers': path.resolve(__dirname, 'node_modules/@huggingface/transformers'),
+      '@huggingface/transformers': path.resolve(__dirname, 'node_modules/@huggingface/transformers')
     }
   },
   plugins: [
@@ -62,14 +64,19 @@ export default {
     })
   ],
   entry: {
-    content: ['./src/js/content.js'],
-    background: ['./src/js/background.js'],
-    page: ['./src/js/page.js'],
-    popup: ['./src/js/popup.js'],
-    options: ['./src/js/options.js']
+    content: ['./src/js/content.ts'],
+    background: ['./src/js/background.ts'],
+    page: ['./src/js/page.ts'],
+    popup: ['./src/js/popup.ts'],
+    options: ['./src/js/options.ts']
   },
   module: {
     rules: [
+      {
+        test: /\.tsx?$/,
+        use: 'ts-loader',
+        exclude: /node_modules/,
+      },
       {
         test: /\.css$/,
         use: [
