@@ -1,14 +1,14 @@
-import { PageAnalysisFactory } from './PageAnalysisFactory.js';
-import { PageObserver } from './PageObserver.js';
-import { backgroundLog } from './log.js';
-import { WindowObserver } from './WindowObserver.js';
+import { PageAnalysisFactory } from './PageAnalysisFactory';
+import { PageObserver } from './PageObserver';
+import { backgroundLog } from './log';
+import { WindowObserver } from './WindowObserver';
 import { 
   AIResponse, 
   ContentMessage, 
   TryAgainMessage, 
   MessageResponse,
   AnalysisMeta 
-} from '../types/index.js';
+} from '../types/index';
 
 const DO_BLOCK: boolean = true;
 

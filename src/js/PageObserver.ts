@@ -1,6 +1,6 @@
-import { backgroundLog } from './log.js';
+import { backgroundLog } from './log';
 import _ from 'lodash';
-import { ObserverOptions } from '../types/index.js';
+import { ObserverOptions } from '../types/index';
 
 export class PageObserver {
     private target: Node;

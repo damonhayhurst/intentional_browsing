@@ -1,7 +1,7 @@
 import { Readability } from "@mozilla/readability";
 import TurndownService from "turndown";
-import { backgroundLog } from "./log.js";
-import { AnalysisMeta } from "../types/index.js";
+import { backgroundLog } from "./log";
+import { AnalysisMeta } from "../types/index";
 
 export abstract class PageAnalysis {
     protected document: Document;

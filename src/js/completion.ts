@@ -1,4 +1,4 @@
-import { BaseSettings } from './settings.js';
+import { BaseSettings } from './settings';
 
 interface ChatMessage {
     role: string;

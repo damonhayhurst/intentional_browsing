@@ -1,5 +1,5 @@
-import { PageObserver } from "./PageObserver.js";
-import { ObserverOptions } from "../types/index.js";
+import { PageObserver } from "./PageObserver";
+import { ObserverOptions } from "../types/index";
 
 export class PageObserverFactory {
     static OPTIONS_MAP: Record<string, ObserverOptions> = {

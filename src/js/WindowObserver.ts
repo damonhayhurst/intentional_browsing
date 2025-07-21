@@ -1,4 +1,4 @@
-import { backgroundLog } from "./log.js";
+import { backgroundLog } from "./log";
 
 export class WindowObserver {
     constructor(callback: () => void, trackUrlInterval: number = 100) {

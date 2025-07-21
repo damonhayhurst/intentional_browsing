@@ -1,7 +1,7 @@
-import { OllamaSettings, OpenAISettings, ReaderLMSettings } from './settings.js';
-import { UserStorageInterface } from './user.js';
-import { ChatCompletion, ChatGenerate, fetchChatCompletion, fetchChatGeneration } from './completion.js';
-import { PageAnalysis } from './PageAnalysis.js';
+import { OllamaSettings, OpenAISettings, ReaderLMSettings } from './settings';
+import { UserStorageInterface } from './user';
+import { ChatCompletion, ChatGenerate, fetchChatCompletion, fetchChatGeneration } from './completion';
+import { PageAnalysis } from './PageAnalysis';
 import { AutoTokenizer } from '@huggingface/transformers';
 import { 
   AIResponse, 
